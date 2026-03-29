@@ -1,0 +1,12 @@
+[package]
+name = "xex"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "xex"
+path = "src/lib.rs"
+
+[[bin]]
+name = "chess-moves"
+path = "src/main.rs"
