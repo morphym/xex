@@ -165,6 +165,54 @@ impl Board {
         Some(Board { squares, turn, castling, en_passant })
     }
 
+    /// Serialise the board to a FEN string.
+    pub fn to_fen(&self) -> String {
+        let mut fen = String::new();
+        for rank in (0..8).rev() {
+            let mut empty = 0u8;
+            for file in 0..8 {
+                match self.squares[rank][file] {
+                    None => { empty += 1; }
+                    Some((color, piece)) => {
+                        if empty > 0 { fen.push((b'0' + empty) as char); empty = 0; }
+                        let c = match piece {
+                            Piece::Pawn   => 'p',
+                            Piece::Knight => 'n',
+                            Piece::Bishop => 'b',
+                            Piece::Rook   => 'r',
+                            Piece::Queen  => 'q',
+                            Piece::King   => 'k',
+                        };
+                        fen.push(if color == Color::White { c.to_ascii_uppercase() } else { c });
+                    }
+                }
+            }
+            if empty > 0 { fen.push((b'0' + empty) as char); }
+            if rank > 0 { fen.push('/'); }
+        }
+        fen.push(' ');
+        fen.push(match self.turn { Color::White => 'w', Color::Black => 'b' });
+        fen.push(' ');
+        let mut cas = String::new();
+        if self.castling[0] { cas.push('K'); }
+        if self.castling[1] { cas.push('Q'); }
+        if self.castling[2] { cas.push('k'); }
+        if self.castling[3] { cas.push('q'); }
+        if cas.is_empty() { cas.push('-'); }
+        fen.push_str(&cas);
+        fen.push(' ');
+        match self.en_passant {
+            Some(sq) => {
+                fen.push((b'a' + sq.file) as char);
+                fen.push((b'1' + sq.rank) as char);
+            }
+            None => fen.push('-'),
+        }
+        // Halfmove clock and fullmove number (not tracked, use defaults)
+        fen.push_str(" 0 1");
+        fen
+    }
+
     pub fn get(&self, sq: Sq) -> Option<(Color, Piece)> {
         self.squares[sq.rank as usize][sq.file as usize]
     }
